@@ -1,13 +1,13 @@
 package mimic
 
 import (
-	"github.com/bwmarrin/discordgo"
-	"strings"
-	"math/rand"
 	"errors"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
-	)
+	"math/rand"
+	"strings"
+)
 
 var (
 	usersData map[string]map[string]map[string]int

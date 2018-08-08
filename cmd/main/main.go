@@ -4,13 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"github.com/polarbirds/jako/internal/mimic"
+	"github.com/polarbirds/jako/pkg/command"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
-	"github.com/polarbirds/jako/pkg/command"
-	"github.com/polarbirds/jako/internal/mimic"
 )
 
 var (
