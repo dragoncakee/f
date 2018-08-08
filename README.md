@@ -1,4 +1,6 @@
 # jako
+[![Build Status](https://travis-ci.org/polarbirds/jako.svg?branch=master)](https://travis-ci.org/polarbirds/jako)
+
 A discord-bot that mimics other users using markov chains
 
 ## Usage
