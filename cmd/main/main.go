@@ -57,7 +57,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		source, args, err := command.GetCommand(m.Content)
 		if err != nil {
 			log.Error(err)
-			s.UpdateStatus(0, err.Error())
 			return
 		}
 
@@ -66,7 +65,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		switch strings.ToLower(source) {
 		case "mimic":
 			if len(args) < 1 {
-				s.UpdateStatus(0, "missing target")
 				return
 			}
 			target := args[0]
