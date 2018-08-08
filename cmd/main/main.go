@@ -74,6 +74,15 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				starter = args[1]
 			}
 			s.ChannelMessageSend(m.ChannelID, mimic.Generate(target, starter))
+		case "words":
+			var username string
+			if len(args) >= 1 {
+				username = args[0]
+			}
+
+			s.ChannelMessageSend(m.ChannelID, mimic.GetStatus(username))
+		case "help":
+			s.ChannelMessageSend(m.ChannelID, getHelp())
 		}
 
 		if err != nil {
@@ -117,6 +126,11 @@ func createData(s *discordgo.Session) {
 	}
 
 	s.UpdateStatus(0, "Finished building data")
+}
+
+func getHelp() string {
+	return "!mimic mimics a user\nusage: !mimic <username> [starter word]\n" +
+		"!words gets statistics for the markov _tree_ globally or for a user\nusage: !words [username]"
 }
 
 func getMessagesFromChannel(s *discordgo.Session, channel discordgo.Channel) []*discordgo.Message {

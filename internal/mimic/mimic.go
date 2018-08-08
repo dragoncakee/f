@@ -109,3 +109,42 @@ func selectWord(wordData map[string]int) (string, error) {
 
 	return "", errors.New(fmt.Sprintf("no word selected, length of wordMap %d", len(wordData)))
 }
+
+func GetStatus(username string) string {
+	if username == "" {
+		totalWords := 0
+		conts := 0
+		for _, v := range usersData {
+			totalWords += len(v)
+			for _, wordConts := range v {
+				conts += len(wordConts)
+			}
+		}
+
+		return fmt.Sprintf(
+			"Total of %d words with %d continuations for %d users. Each word has on average %.2f continuations",
+			totalWords,
+			conts,
+			len(usersData),
+			float64(conts)/float64(totalWords),
+		)
+	} else {
+		if _, ok := usersData[username]; !ok {
+			return ""
+		}
+		userData := usersData[username]
+		totalWords := len(userData)
+		conts := 0
+		for _, wordConts := range userData {
+			conts += len(wordConts)
+		}
+
+		return fmt.Sprintf(
+			"%s has a total of %d words with %d continuations, each word has an average of %.2f continuations",
+			username,
+			totalWords,
+			conts,
+			float64(conts)/float64(totalWords),
+		)
+	}
+}
