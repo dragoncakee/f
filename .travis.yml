@@ -1,0 +1,31 @@
+language: go
+go:
+  - "1.10"
+
+before_install:
+  # Dependency tool (dep)
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh  
+  - dep ensure
+  # Build tool (gox)
+  - go get github.com/mitchellh/gox
+install:
+  - # skip
+
+script:
+  - go get -t -v ./...
+  - diff -u <(echo -n) <(gofmt -d cmd/ internal/ pkg/)
+  - go vet $(go list ./... | grep -v /vendor/)
+  - go test -v -race ./...
+  # Build binary
+  - gox -os="linux" -arch="amd64" -output="jako_{{.OS}}_{{.Arch}}" -ldflags "-X main.Rev=`git rev-parse --short HEAD`" -verbose ./cmd/main/
+
+
+deploy:
+  provider: releases
+  api_key:
+    secure: FgRDIrg4yZ2gH/ENZXptka6pViA5SFpIqL1Z6XpI7dPtjYsVyGO2BuiyeYsINPOg0Cxm5+AtuJk8iVSslwr52F5y/xp4lO/mOkSHP4zGt3H8ZIdkn6F+1G/Qp1l3vqQgvSz1LxhVPm8ZHi41Ng89x8qi+NQ1NlNbSBs2tKmFkpQEL+OXz+GA1qY4kZAltEyswkPQehFoCwn9y7Z9hLz9wRrsmPKyYbVtoc0FQLJlwYYEeF6n7/ee/TrcOSWH7et9QO5VDMnPmpvWq+u0fRJppmJ+Wci5ns1a5KblMMZaAba7XJiYLtp2rhOSWy9cCH2DrV3zIb8jpte6mBkw8D9cnMPZqoOrUCbSp97PyOJido6EHKhJYUzOosyrveCnzoLeLb0d7HjFa5gDigg/OxQYg5CjQHe/p6t3p06OJxhHLGkPpzDI87vULrUHR8Uym7yd1gSjgXMG8ETUUS4NQGm/UnRzu6shah7Mg08A3YTZvBdPLPic9e1WHvNl64a8sX2kJhLoALFXKn2e/No1pJsCEcOL15WQFEFpGlNPikHVuOdknPjQt9sjpHoXhMbe0fdbVMzMxXxDFS7aSymnHKGGzFpz46uOAf8bwWycMjih4PnQNh6RQWf3iV1J3rBrLqwGR6dC58D3eDnNZ3MEpH7yb5B/faV2tJoelLCEiJAyyHc=
+  file: "lunde_linux_amd64"
+  skip_cleanup: true
+  on:
+    branch: master
+    tags: true
