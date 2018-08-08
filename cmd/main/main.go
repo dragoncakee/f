@@ -10,6 +10,7 @@ import (
 	"strings"
 	"syscall"
 	"github.com/polarbirds/jako/pkg/command"
+	"github.com/polarbirds/jako/internal/mimic"
 )
 
 var (
@@ -69,7 +70,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 			target := args[0]
-			log.Infof("mimicking %s", target)
+			s.ChannelMessageSend(m.ChannelID, mimic.Generate(target))
 		}
 
 		if err != nil {
@@ -81,11 +82,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			log.Error(discErr)
 		}
 	} else {
-		// Parse text and update state data
+		mimic.Build(m.Message)
 	}
 }
 
 func createData(s *discordgo.Session) {
+	s.UpdateStatus(0, "Building data...")
 	for _, guild := range s.State.Guilds {
 		log.Infof("Parsing guild %s: %s", guild.Name, guild.ID)
 
@@ -103,9 +105,15 @@ func createData(s *discordgo.Session) {
 			log.Infof("name:%s id:%s", v.Name, v.ID)
 
 			msgs := getMessagesFromChannel(s, *v)
+
+			for _, m := range msgs {
+				mimic.Build(m)
+			}
 			log.Infof("%d messages gotten", len(msgs))
 		}
 	}
+
+	s.UpdateStatus(0, "Finished building data")
 }
 
 func getMessagesFromChannel(s *discordgo.Session, channel discordgo.Channel) []*discordgo.Message {
@@ -117,6 +125,7 @@ func getMessagesFromChannel(s *discordgo.Session, channel discordgo.Channel) []*
 		if err != nil {
 			log.Fatal(err)
 			if failedAttempts > 10 {
+				log.Error(err)
 				break
 			} else {
 				failedAttempts++
