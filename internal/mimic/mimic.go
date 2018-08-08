@@ -62,10 +62,19 @@ func getUserData(username string) map[string]map[string]int {
 	return userData
 }
 
-func Generate(username string) string {
+func Generate(username string, starter string) string {
+	if _, ok := usersData[username]; !ok {
+		return ""
+	}
+
 	userData := usersData[username]
 
-	word, err := selectWord(userData[messageStarter])
+	var err error
+	var word = starter
+	if starter == "" {
+		word, err = selectWord(userData[messageStarter])
+	}
+
 	if err != nil {
 		log.Error(err)
 	}
@@ -73,7 +82,7 @@ func Generate(username string) string {
 	err = nil
 	for {
 		word, err = selectWord(userData[word])
-		if err != nil {
+		if err != nil || len(message) > 1000 {
 			break
 		}
 		message = append(message, word)
@@ -86,11 +95,7 @@ func selectWord(wordData map[string]int) (string, error) {
 	for _, weight := range wordData {
 		weightSum += weight
 	}
-	//randomWeight = rand(1, sumOfWeights)
-	//for each item in array
-	//	randomWeight = randomWeight - item.Weight
-	//	if randomWeight <= 0
-	//		break // done, we select this item
+
 	if weightSum <= 0 {
 		return "", errors.New("no words to use")
 	}

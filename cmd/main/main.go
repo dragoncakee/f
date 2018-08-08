@@ -68,7 +68,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 			target := args[0]
-			s.ChannelMessageSend(m.ChannelID, mimic.Generate(target))
+
+			var starter string
+			if len(args) >= 2 {
+				starter = args[1]
+			}
+			s.ChannelMessageSend(m.ChannelID, mimic.Generate(target, starter))
 		}
 
 		if err != nil {
@@ -107,7 +112,7 @@ func createData(s *discordgo.Session) {
 			for _, m := range msgs {
 				mimic.Build(m)
 			}
-			log.Infof("%d messages gotten", len(msgs))
+			log.Infof("%d messages fetched", len(msgs))
 		}
 	}
 
