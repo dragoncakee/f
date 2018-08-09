@@ -36,22 +36,24 @@ func Build(m *discordgo.Message) {
 
 	// TODO: remove chained whitespace
 	// TODO: ignore links (or not?)
-	putWord(messageStarter, words[0], m.Author.Username)
+	putWord(messageStarter, words[0], m)
 	for i := 0; i < len(words)-1; i++ {
-		putWord(words[i], words[i+1], m.Author.Username)
+		putWord(words[i], words[i+1], m)
 		if i < len(words)-2 {
-			putWord(words[i]+" "+words[i+1], words[i+2], m.Author.Username)
+			putWord(words[i]+" "+words[i+1], words[i+2], m)
 		}
 	}
 
 	l := len(words)
-	putWord(words[l-2]+" "+words[l-1], messageEnder, m.Author.Username)
+	putWord(words[l-2]+" "+words[l-1], messageEnder, m)
 }
 
-func putWord(leading string, trailing string, username string) {
-	userData := getUserData(username)
+func putWord(leading string, trailing string, m *discordgo.Message) {
+	userData := getUserData(m.Author.Username)
 	singleUserPutWord(leading, trailing, userData)
-	singleUserPutWord(leading, trailing, getUserData("all"))
+	if !m.Author.Bot {
+		singleUserPutWord(leading, trailing, getUserData("all"))
+	}
 }
 
 func singleUserPutWord(leading string, trailing string, userData map[string]map[string]int) {
@@ -196,7 +198,7 @@ func DebugSelectWord(input string) string {
 func weightsTostring(m map[string]int) string {
 	s := []string{"["}
 	for k, v := range m {
-		s = append(s, k + ":" + fmt.Sprintf("%d", v))
+		s = append(s, k+":"+fmt.Sprintf("%d", v))
 	}
 	s = append(s, "]")
 	return strings.Join(s, " ")
