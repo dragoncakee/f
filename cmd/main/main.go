@@ -71,7 +71,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 			var starter string
 			if len(args) >= 2 {
-				starter = args[1]
+				starter = strings.Join(args[1:], " ")
 			}
 			s.ChannelMessageSend(m.ChannelID, mimic.Generate(target, starter))
 		case "words":
@@ -83,6 +83,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, mimic.GetStatus(username))
 		case "help":
 			s.ChannelMessageSend(m.ChannelID, getHelp())
+		case "debug":
+			s.ChannelMessageSend(m.ChannelID, mimic.DebugSelectWord(m.Content))
 		}
 
 		if err != nil {

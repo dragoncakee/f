@@ -14,7 +14,8 @@ var (
 )
 
 const (
-	messageStarter = "((!BEGINNING_OF_MESSAGE!))"
+	messageStarter = "((!BEGIN_MESSAGE!))"
+	messageEnder   = "((!END_MESSAGE!))"
 )
 
 func init() {
@@ -28,18 +29,32 @@ func Build(m *discordgo.Message) {
 		return
 	}
 
-	userData := getUserData(m.Author.Username)
+	words := strings.Split(text, " ")
+	if len(words) < 2 {
+		return
+	}
 
 	// TODO: remove chained whitespace
 	// TODO: ignore links (or not?)
-	words := strings.Split(text, " ")
-	putWord(messageStarter, words[0], userData)
+	putWord(messageStarter, words[0], m.Author.Username)
 	for i := 0; i < len(words)-1; i++ {
-		putWord(words[i], words[i+1], userData)
+		putWord(words[i], words[i+1], m.Author.Username)
+		if i < len(words)-2 {
+			putWord(words[i]+" "+words[i+1], words[i+2], m.Author.Username)
+		}
 	}
+
+	l := len(words)
+	putWord(words[l-2]+" "+words[l-1], messageEnder, m.Author.Username)
 }
 
-func putWord(leading string, trailing string, userData map[string]map[string]int) {
+func putWord(leading string, trailing string, username string) {
+	userData := getUserData(username)
+	singleUserPutWord(leading, trailing, userData)
+	singleUserPutWord(leading, trailing, getUserData("all"))
+}
+
+func singleUserPutWord(leading string, trailing string, userData map[string]map[string]int) {
 	if wordTrails, ok := userData[leading]; ok {
 		if _, ok := wordTrails[trailing]; ok {
 			wordTrails[trailing]++
@@ -81,13 +96,21 @@ func Generate(username string, starter string) string {
 	message := []string{word}
 	err = nil
 	for {
-		word, err = selectWord(userData[word])
-		if err != nil || len(message) > 1000 {
+		word, err = selectWord(userData[getState(message)])
+		if err != nil || len(message) > 1000 || word == messageEnder {
 			break
 		}
 		message = append(message, word)
 	}
 	return strings.Join(message, " ")
+}
+
+func getState(message []string) string {
+	l := len(message)
+	if l == 1 {
+		return message[0]
+	}
+	return message[l-2] + " " + message[l-1]
 }
 
 func selectWord(wordData map[string]int) (string, error) {
@@ -147,4 +170,34 @@ func GetStatus(username string) string {
 			float64(conts)/float64(totalWords),
 		)
 	}
+}
+
+func DebugSelectWord(input string) string {
+	splits := strings.Split(input, " ")[1:]
+	username := splits[0]
+	if _, ok := usersData[username]; !ok {
+		return "no such user"
+	}
+	userData := usersData[username]
+
+	content := strings.Join(splits[1:], " ")
+	wordData := userData[content]
+	selectedWord, err := selectWord(userData[content])
+	if err != nil {
+		return fmt.Sprintf(
+			"Length of wordsdata was %d, and selectWord returned error: %s",
+			len(wordData),
+			err.Error(),
+		)
+	}
+	return fmt.Sprintf("Selected word returned was %q, words in data were %s", selectedWord, weightsTostring(wordData))
+}
+
+func weightsTostring(m map[string]int) string {
+	s := []string{"["}
+	for k, v := range m {
+		s = append(s, k + ":" + fmt.Sprintf("%d", v))
+	}
+	s = append(s, "]")
+	return strings.Join(s, " ")
 }
