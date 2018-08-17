@@ -29,6 +29,8 @@ func Build(m *discordgo.Message) {
 		return
 	}
 
+	text = strings.ToLower(text)
+
 	words := strings.Split(text, " ")
 	if len(words) < 2 {
 		return
