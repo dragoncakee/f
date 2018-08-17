@@ -87,7 +87,7 @@ func Generate(username string, starter string) string {
 	}
 
 	userData := usersData[username]
-	
+
 	starter = strings.ToLower(starter)
 
 	var err error
@@ -179,6 +179,8 @@ func GetStatus(username string) string {
 }
 
 func DebugSelectWord(input string) string {
+	input = strings.ToLower(input)
+	
 	splits := strings.Split(input, " ")[1:]
 	username := splits[0]
 	if _, ok := usersData[username]; !ok {
