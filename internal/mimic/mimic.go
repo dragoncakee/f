@@ -87,6 +87,8 @@ func Generate(username string, starter string) string {
 	}
 
 	userData := usersData[username]
+	
+	starter = strings.ToLower(starter)
 
 	var err error
 	var word = starter
