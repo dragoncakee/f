@@ -90,19 +90,20 @@ func Generate(username string, starter string) string {
 
 	starter = strings.ToLower(starter)
 
-	var err error
-	var word = starter
-	if starter == "" {
-		word, err = selectWord(userData[messageStarter])
+	var message []string
+
+	if starter != "" {
+		message = strings.Split(starter, " ")
+	} else {
+		word, err := selectWord(userData[messageStarter])
+		if err != nil {
+			log.Error(err)
+		}
+		message = []string{word}
 	}
 
-	if err != nil {
-		log.Error(err)
-	}
-	message := []string{word}
-	err = nil
 	for {
-		word, err = selectWord(userData[getState(message)])
+		word, err := selectWord(userData[getState(message)])
 		if err != nil || len(message) > 1000 || word == messageEnder {
 			break
 		}
@@ -180,7 +181,7 @@ func GetStatus(username string) string {
 
 func DebugSelectWord(input string) string {
 	input = strings.ToLower(input)
-	
+
 	splits := strings.Split(input, " ")[1:]
 	username := splits[0]
 	if _, ok := usersData[username]; !ok {
