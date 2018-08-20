@@ -22,9 +22,11 @@ func init() {
 	usersData = make(map[string]map[string]map[string]int)
 }
 
-func Build(m *discordgo.Message) {
-	text := m.Content
+func BuildMessage(m *discordgo.Message) {
+	Build(m.Content, m.Author.Username, !m.Author.Bot)
+}
 
+func Build(text string, username string, includeInAll bool) {
 	if len(text) == 0 || text[0] == '!' {
 		return
 	}
@@ -38,22 +40,22 @@ func Build(m *discordgo.Message) {
 
 	// TODO: remove chained whitespace
 	// TODO: ignore links (or not?)
-	putWord(messageStarter, words[0], m)
+	putWord(messageStarter, words[0], username, includeInAll)
 	for i := 0; i < len(words)-1; i++ {
-		putWord(words[i], words[i+1], m)
+		putWord(words[i], words[i+1], username, includeInAll)
 		if i < len(words)-2 {
-			putWord(words[i]+" "+words[i+1], words[i+2], m)
+			putWord(words[i]+" "+words[i+1], words[i+2], username, includeInAll)
 		}
 	}
 
 	l := len(words)
-	putWord(words[l-2]+" "+words[l-1], messageEnder, m)
+	putWord(words[l-2]+" "+words[l-1], messageEnder, username, includeInAll)
 }
 
-func putWord(leading string, trailing string, m *discordgo.Message) {
-	userData := getUserData(m.Author.Username)
+func putWord(leading string, trailing string, username string, includeInAll bool) {
+	userData := getUserData(username)
 	singleUserPutWord(leading, trailing, userData)
-	if !m.Author.Bot {
+	if includeInAll {
 		singleUserPutWord(leading, trailing, getUserData("all"))
 	}
 }

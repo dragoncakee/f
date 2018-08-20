@@ -11,6 +11,9 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"net/http"
+	"io/ioutil"
+	"regexp"
 )
 
 var (
@@ -96,7 +99,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			log.Error(discErr)
 		}
 	} else {
-		mimic.Build(m.Message)
+		mimic.BuildMessage(m.Message)
 	}
 }
 
@@ -121,18 +124,15 @@ func createData(s *discordgo.Session) {
 			msgs := getMessagesFromChannel(s, *v)
 
 			for _, m := range msgs {
-				mimic.Build(m)
+				mimic.BuildMessage(m)
 			}
 			log.Infof("%d messages fetched", len(msgs))
 		}
 	}
 
-	s.UpdateStatus(0, "Finished building data")
-}
+	buildTrump()
 
-func getHelp() string {
-	return "!mimic mimics a user\nusage: !mimic <username> [starter word]\n" +
-		"!words gets statistics for the markov _tree_ globally or for a user\nusage: !words [username]"
+	s.UpdateStatus(0, "Finished building data")
 }
 
 func getMessagesFromChannel(s *discordgo.Session, channel discordgo.Channel) []*discordgo.Message {
@@ -161,4 +161,37 @@ func getMessagesFromChannel(s *discordgo.Session, channel discordgo.Channel) []*
 		failedAttempts = 0
 	}
 	return msgs
+}
+
+func buildTrump() {
+	log.Info("Building trump")
+
+	resp, err := http.Get("https://raw.githubusercontent.com/ryanmcdermott/trump-speeches/master/speeches.txt")
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	bod := string(b)
+
+	lines := strings.Split(bod, "\n")
+	pattern, err := regexp.Compile("^SPEECH \\d+")
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	for _, line := range lines {
+		if len(line) == 0 || pattern.MatchString(line) {
+			continue
+		}
+		mimic.Build(line, "trump", false)
+	}
+	log.Info("Trump built")
+}
+
+func getHelp() string {
+	return "!mimic mimics a user\nusage: !mimic <username> [starter word]\n" +
+		"!words gets statistics for the markov _tree_ globally or for a user\nusage: !words [username]"
 }
